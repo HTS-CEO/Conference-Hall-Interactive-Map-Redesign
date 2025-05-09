@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biohacking Conference Map</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa
+        }
+
+        .header {
+            background: #1a237e;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2)
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px
+        }
+
+        .our-booth {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)
+        }
+
+        .our-booth h1 {
+            color: #0d47a1;
+            margin: 0
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            margin: 30px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none
+        }
+
+        .map-container {
+            width: 100%;
+            overflow: auto;
+            border-radius: 10px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px
+        }
+
+        #conference-map {
+            width: 100%;
+            height: auto
+        }
+
+        .booth {
+            fill: #4fc3f7;
+            stroke: #0288d1;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.3s;
+            rx: 5;
+            ry: 5
+        }
+
+        .booth:hover {
+            fill: #0288d1
+        }
+
+        .booth.active {
+            fill: #00c853;
+            stroke: #00c853
+        }
+
+        .booth-text {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+            pointer-events: none
+        }
+
+        #booth-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            display: none;
+            pointer-events: none;
+            z-index: 100;
+            max-width: 250px;
+            font-size: 14px;
+            line-height: 1.4
+        }
+
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px
+        }
+
+        .search-container button {
+            padding: 12px 20px;
+            background: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px
+        }
+
+        .filter-btn.active {
+            background: #1a237e;
+            color: white
+        }
+
+        @media (max-width:768px) {
+            .container {
+                padding: 10px
+            }
+
+            .our-booth {
+                padding: 15px
+            }
+
+            .search-container {
+                flex-direction: column
+            }
+
+            .filter-buttons {
+                gap: 8px
+            }
+
+            .filter-btn {
+                padding: 6px 12px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Biohacking Wonderland Tech Hall</h1>
+        <p>Fairmont Austin Hotel | May 28–30, 2025</p>
+    </div>
+    <div class="container">
+        <div class="our-booth">
+            <h1>Our Booth: Pre-12</h1>
+            <p>Visit XYZ Biohacking at Booth Pre-12 for exclusive demos!</p>
+        </div>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+        </div>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search vendors or booths...">
+            <button id="search-btn">Search</button>
+        </div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="pre">Pre-Booths</button>
+            <button class="filter-btn" data-filter="num">Numbered Booths</button>
+        </div>
+        <div class="map-container">
+            <svg id="conference-map" viewBox="0 0 1200 900"></svg>
+            <div id="booth-tooltip"></div>
+        </div>
+    </div>
+   <script>
+    const boothData = [
+  {id:"Pre-06",x:50,y:50,width:70,height:50,vendor:"NeuroTech Inc.",category:"pre",desc:"Brain-computer interfaces"},
+  {id:"Pre-07",x:130,y:50,width:70,height:50,vendor:"GeneCraft Labs",category:"pre",desc:"CRISPR gene editing solutions"},
+  // ... (all other booth data entries remain the same)
+  {id:"111",x:530,y:580,width:70,height:50,vendor:"GeneVita",category:"num",desc:"Gene vitality"}
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+  const svg = document.getElementById('conference-map');
+  const tooltip = document.getElementById('booth-tooltip');
+  const searchInput = document.getElementById('search-input');
+  const searchBtn = document.getElementById('search-btn');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  let activeBooth = null;
+
+  function renderMap(filter = "all", searchTerm = "") {
+    svg.innerHTML = '';
+    boothData.forEach(booth => {
+      if (filter !== "all" && booth.category !== filter) return;
+      const searchLower = searchTerm.toLowerCase();
+      if (searchTerm && 
+          !booth.id.toLowerCase().includes(searchLower) && 
+          !booth.vendor.toLowerCase().includes(searchLower) && 
+          !booth.desc.toLowerCase().includes(searchLower)) return;
+      
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", booth.x);
+      rect.setAttribute("y", booth.y);
+      rect.setAttribute("width", booth.width);
+      rect.setAttribute("height", booth.height);
+      rect.setAttribute("class", "booth");
+      rect.setAttribute("data-id", booth.id);
+      svg.appendChild(rect);
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", booth.x + booth.width/2);
+      text.setAttribute("y", booth.y + booth.height/2);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("class", "booth-text");
+      text.textContent = booth.id;
+      svg.appendChild(text);
+
+      rect.addEventListener('mouseenter', function(e) {
+        if (window.innerWidth > 768) showTooltip(e, booth);
+      });
+      rect.addEventListener('mouseleave', function() {
+        if (window.innerWidth > 768) hideTooltip();
+      });
+      rect.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) toggleBoothSelection(booth.id);
+        showTooltip(e, booth);
+      });
+    });
+  }
+
+  function showTooltip(e, booth) {
+    tooltip.innerHTML = `<strong>${booth.id}: ${booth.vendor}</strong><br>${booth.desc}`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${e.pageX + 10}px`;
+    tooltip.style.top = `${e.pageY + 10}px`;
+  }
+
+  function hideTooltip() {
+    tooltip.style.display = 'none';
+  }
+
+  function toggleBoothSelection(boothId) {
+    document.querySelectorAll('.booth').forEach(booth => {
+      booth.classList.remove('active');
+    });
+    if (activeBooth !== boothId) {
+      const booth = document.querySelector(`.booth[data-id="${boothId}"]`);
+      if (booth) {
+        booth.classList.add('active');
+        activeBooth = boothId;
+      }
+    } else {
+      activeBooth = null;
+    }
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      renderMap(this.dataset.filter, searchInput.value.toLowerCase());
+    });
+  });
+
+  searchBtn.addEventListener('click', function() {
+    const filter = document.querySelector('.filter-btn.active').dataset.filter;
+    renderMap(filter, searchInput.value.toLowerCase());
+  });
+
+  searchInput.addEventListener('keyup', function(e) {
+    if (e.key === 'Enter') {
+      const filter = document.querySelector('.filter-btn.active').dataset.filter;
+      renderMap(filter, searchInput.value.toLowerCase());
+    }
+  });
+
+  renderMap();
+});
+   </script>
+</body>
+
+</html>
